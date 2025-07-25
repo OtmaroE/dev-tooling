@@ -5,5 +5,6 @@ Built with HTML, CSS, and javascript. No externals calls, not even to fetch a li
 
 ## List of tools.
 
-### A JWT decoder: Shows the payload property of the token
+### A JWT decoder:
+Shows the payload property of the token
 ![token-decoder](images/token-decoder.png)
