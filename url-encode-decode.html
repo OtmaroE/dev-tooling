@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Auto URL Encode/Decode</title>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        textarea {
+            min-height: 80px;
+            min-width: 100%;
+            padding: 1rem;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #2e2e2e;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+            resize: none;
+            overflow: hidden;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Auto URL Encode/Decode</h1>
+
+<div class="input-group">
+    <label for="decodedInput">Decoded Text</label>
+    <textarea id="decodedInput" placeholder="Type here to encode..."></textarea>
+</div>
+
+<div class="input-group">
+    <label for="encodedInput">Encoded Text</label>
+    <textarea id="encodedInput" placeholder="Type here to decode..."></textarea>
+</div>
+
+<script>
+    const decodedInput = document.getElementById('decodedInput');
+    const encodedInput = document.getElementById('encodedInput');
+
+    let lastChanged = null;
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.width = '100%';
+        el.style.height = el.scrollHeight + 'px';
+
+        // Optional: Increase width slightly if content overflows (up to a max)
+        const contentLength = el.value.length;
+        const baseWidth = window.innerWidth > 600 ? 500 : 300;
+        const newWidth = Math.min(baseWidth + contentLength * 0.5, window.innerWidth - 40);
+        el.style.width = newWidth + 'px';
+    }
+
+    function handleDecodedInput() {
+        if (lastChanged === 'encoded') return;
+        lastChanged = 'decoded';
+        try {
+            encodedInput.value = encodeURIComponent(decodedInput.value);
+        } catch {
+            encodedInput.value = 'Encoding error';
+        }
+        autoResize(decodedInput);
+        autoResize(encodedInput);
+        lastChanged = null;
+    }
+
+    function handleEncodedInput() {
+        if (lastChanged === 'decoded') return;
+        lastChanged = 'encoded';
+        try {
+            decodedInput.value = decodeURIComponent(encodedInput.value);
+        } catch {
+            decodedInput.value = 'Invalid encoded string';
+        }
+        autoResize(encodedInput);
+        autoResize(decodedInput);
+        lastChanged = null;
+    }
+
+    decodedInput.addEventListener('input', handleDecodedInput);
+    encodedInput.addEventListener('input', handleEncodedInput);
+
+    // Initial resize
+    autoResize(decodedInput);
+    autoResize(encodedInput);
+</script>
+
+</body>
+</html>
