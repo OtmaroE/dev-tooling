@@ -22,3 +22,4 @@ Enter any valid HTML in to the box, and it will render to the right of the scree
 
 ### Base64 Encode/Decoder:
 A tool that coverts Base64 encoded text into plain text and vice versa.
+![base64 encode/decode](images/base64-encode-decode.png)
