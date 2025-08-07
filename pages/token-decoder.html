@@ -54,30 +54,46 @@
 <label for="jwtInput">Enter JWT Token:</label>
 <textarea id="jwtInput" placeholder="Paste your JWT here..."></textarea>
 
-<label for="jwtOutput">Decoded Payload:</label>
-<pre id="jwtOutput">{ }</pre>
+<label for="jwtHeader">Header: </label>
+<pre id="jwtHeader">{ }</pre>
+
+<label for="jwtPayload">Payload:</label>
+<pre id="jwtPayload">{ }</pre>
+
 
 <script>
     const jwtInput = document.getElementById('jwtInput');
-    const jwtOutput = document.getElementById('jwtOutput');
+    const jwtPayload = document.getElementById('jwtPayload');
+    const jwtHeader = document.getElementById('jwtHeader');
 
     function decodeJWT(token) {
         try {
-            const payload = token.split('.')[1];
-            const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-            const json = JSON.parse(decoded);
-            return JSON.stringify(json, null, 2);
+            const payload = decode(token.split('.')[1]);
+            const header = decode(token.split('.')[0]);
+            return {
+                payload,
+                header,
+            };
         } catch (e) {
             return 'Invalid JWT or malformed payload.';
         }
     }
 
+    function decode(piece) {
+        const data = atob(piece.replace(/-/g, '+').replace(/_/g, '/'));
+        const json = JSON.parse(data);
+        return JSON.stringify(json, null, 2);
+    }
+
     jwtInput.addEventListener('input', () => {
         const token = jwtInput.value.trim();
         if (token.split('.').length === 3) {
-            jwtOutput.textContent = decodeJWT(token);
+            const { payload, header } = decodeJWT(token);
+            jwtHeader.textContent = header;
+            jwtPayload.textContent = payload;
         } else {
-            jwtOutput.textContent = '{ }';
+            jwtHeader.textContent = '{ }';
+            jwtPayload.textContent = '{ }';
         }
     });
 </script>
