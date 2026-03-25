@@ -1,33 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live HTML Renderer - Dark Mode</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live HTML Renderer</title>
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            height: 100vh;
-            display: flex;
-            background: #1e1e1e;
-            color: #ddd;
+        :root {
+            --background: #1e1e1e;
+            --surface-container: #252526;
+            --surface-panel: #252526;
+            --surface-editor: #1e1e1e;
+            --surface-preview: #2d2d2d;
+            --primary: #f1f1f1;
+            --outline: #9a9a9a;
+            --panel-border: #444444;
+            --on-surface: #ffffff;
+            --on-surface-variant: #c8c8c8;
+            --shadow-focus: 0 0 0 2px rgba(255, 255, 255, 0.16);
+            --background-dot: rgba(255, 255, 255, 0.028);
+            --headline-font: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+            --body-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            --icon-button-hover: #ffffff;
         }
-        .container {
-            display: flex;
-            width: 100%;
-            height: 100%;
+
+        body[data-theme="light"] {
+            --background: #f3efe8;
+            --surface-container: #ede6dc;
+            --surface-panel: #e8e0d5;
+            --surface-editor: #fbf6ef;
+            --surface-preview: #f7f1e8;
+            --primary: #2d2924;
+            --outline: #7a7269;
+            --panel-border: #c8bcae;
+            --on-surface: #2a2621;
+            --on-surface-variant: #6a6259;
+            --shadow-focus: 0 0 0 2px rgba(45, 41, 36, 0.12);
+            --background-dot: rgba(122, 114, 105, 0.07);
+            --icon-button-hover: #2a2621;
         }
-        .editor, .preview {
-            flex: 1;
-            padding: 10px;
+
+        * {
             box-sizing: border-box;
         }
-        .editor {
-            border-right: 2px solid #444;
-            display: flex;
-            background: #252526;
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
         }
+
+        body {
+            font-family: var(--body-font);
+            color: var(--on-surface);
+            background-color: var(--background);
+            background-image: radial-gradient(circle at 2px 2px, var(--background-dot) 1px, transparent 0);
+            background-size: 24px 24px;
+            transition: background-color 0.25s ease, color 0.25s ease, background-image 0.25s ease;
+        }
+
+        button,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .icon-glyph {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 4rem;
+            padding: 0 1.5rem;
+            background: var(--surface-container);
+        }
+
+        .site-title {
+            margin: 0;
+            font-family: var(--headline-font);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .icon-button {
+            color: var(--on-surface-variant);
+            transition: color 0.2s ease, transform 0.15s ease;
+        }
+
+        .icon-button:hover {
+            color: var(--icon-button-hover);
+        }
+
+        .icon-button:active {
+            transform: scale(0.9);
+        }
+
+        .page {
+            padding: 6rem 2.5rem 5rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: calc(100vh - 11rem);
+            border: 1px solid var(--panel-border);
+            background: var(--surface-panel);
+        }
+
+        .editor,
+        .preview {
+            flex: 1;
+            padding: 10px;
+        }
+
+        .editor {
+            border-right: 2px solid var(--panel-border);
+            display: flex;
+            background: var(--surface-panel);
+        }
+
         textarea {
             width: 100%;
             height: 100%;
@@ -35,38 +152,103 @@
             border: none;
             outline: none;
             font-size: 16px;
-            font-family: monospace;
-            background: #1e1e1e;
-            color: #f1f1f1;
+            font-family: var(--mono-font);
+            background: var(--surface-editor);
+            color: var(--on-surface);
             padding: 10px;
         }
-        .preview {
-            background: #2d2d2d;
-            overflow: auto;
-            color: #f1f1f1;
+
+        textarea:focus {
+            box-shadow: var(--shadow-focus);
         }
+
+        .preview {
+            background: var(--surface-preview);
+            overflow: auto;
+            color: var(--on-surface);
+        }
+
         .preview p {
-            color: #bbb;
+            color: var(--outline);
+        }
+
+        @media (max-width: 767px) {
+            .topbar {
+                padding: 0 1rem;
+            }
+
+            .page {
+                padding: 5.5rem 1.25rem 5rem;
+            }
+
+            .container {
+                flex-direction: column;
+            }
+
+            .editor {
+                min-height: 18rem;
+                border-right: 0;
+                border-bottom: 2px solid var(--panel-border);
+            }
+
+            .preview {
+                min-height: 18rem;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="editor">
-        <label for="inputBox"></label><textarea id="inputBox" placeholder="Type HTML here..."></textarea>
-    </div>
-    <div class="preview" id="viewBox">
-        <p>Rendered HTML will appear here...</p>
-    </div>
-</div>
+    <header class="topbar">
+        <h1 class="site-title">Live HTML Renderer</h1>
+        <div class="topbar-actions">
+            <button aria-label="Switch to light theme" class="icon-button" id="theme-toggle" type="button">
+                <span aria-hidden="true" class="icon-glyph" id="theme-toggle-icon">◐</span>
+            </button>
+        </div>
+    </header>
 
-<script>
-    const inputBox = document.getElementById('inputBox');
-    const viewBox = document.getElementById('viewBox');
+    <main class="page">
+        <div class="container">
+            <div class="editor">
+                <label for="inputBox"></label>
+                <textarea id="inputBox" placeholder="Type HTML here..."></textarea>
+            </div>
+            <div class="preview" id="viewBox">
+                <p>Rendered HTML will appear here...</p>
+            </div>
+        </div>
+    </main>
 
-    inputBox.addEventListener('input', () => {
-        viewBox.innerHTML = inputBox.value;
-    });
-</script>
+    <script>
+        const themeToggleButton = document.getElementById('theme-toggle');
+        const themeToggleIcon = document.getElementById('theme-toggle-icon');
+        const themeStorageKey = 'dev-tools-theme';
+        const inputBox = document.getElementById('inputBox');
+        const viewBox = document.getElementById('viewBox');
+
+        function applyTheme(theme) {
+            const nextTheme = theme === 'light' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', nextTheme);
+
+            const isLight = nextTheme === 'light';
+            themeToggleButton.setAttribute('aria-label', isLight ? 'Switch to dark theme' : 'Switch to light theme');
+            themeToggleButton.setAttribute('title', isLight ? 'Switch to dark theme' : 'Switch to light theme');
+            themeToggleIcon.textContent = isLight ? '◑' : '◐';
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(nextTheme);
+            window.localStorage.setItem(themeStorageKey, nextTheme);
+        }
+
+        applyTheme(window.localStorage.getItem(themeStorageKey) || 'dark');
+        themeToggleButton.addEventListener('click', toggleTheme);
+
+        inputBox.addEventListener('input', () => {
+            viewBox.innerHTML = inputBox.value;
+        });
+    </script>
 </body>
 </html>

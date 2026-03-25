@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auto Base 64 Encode/Decode</title>
+    <title>JSON Formatter</title>
     <style>
         :root {
             --background: #1e1e1e;
             --surface-container: #252526;
-            --surface-container-lowest: #181818;
             --primary: #f1f1f1;
             --outline: #9a9a9a;
             --on-surface: #ffffff;
@@ -17,6 +16,11 @@
             --background-dot: rgba(255, 255, 255, 0.028);
             --input-background: #2e2e2e;
             --input-border: #444444;
+            --error: #ffb4ab;
+            --error-border: #8d3131;
+            --error-background: rgba(141, 49, 49, 0.18);
+            --button-background: #383838;
+            --button-hover: #454545;
             --headline-font: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
             --body-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -26,7 +30,6 @@
         body[data-theme="light"] {
             --background: #f3efe8;
             --surface-container: #ede6dc;
-            --surface-container-lowest: #e1d8cc;
             --primary: #2d2924;
             --outline: #7a7269;
             --on-surface: #2a2621;
@@ -35,6 +38,11 @@
             --background-dot: rgba(122, 114, 105, 0.07);
             --input-background: #f7f1e8;
             --input-border: #c8bcae;
+            --error: #b3261e;
+            --error-border: #c6473b;
+            --error-background: rgba(179, 38, 30, 0.08);
+            --button-background: #ddd2c4;
+            --button-hover: #d0c2b1;
             --icon-button-hover: #2a2621;
         }
 
@@ -127,10 +135,6 @@
             max-width: 64rem;
         }
 
-        .input-group {
-            margin-bottom: 2rem;
-        }
-
         label {
             display: block;
             margin-bottom: 0.5rem;
@@ -138,22 +142,65 @@
         }
 
         textarea {
-            min-height: 80px;
-            min-width: 100%;
+            width: 100%;
+            min-height: 20rem;
             padding: 1rem;
             border: 1px solid var(--input-border);
             border-radius: 5px;
             background-color: var(--input-background);
             color: var(--on-surface);
-            font-size: 1rem;
-            resize: none;
-            overflow: hidden;
             font-family: var(--mono-font);
+            font-size: 1rem;
+            line-height: 1.5;
+            resize: vertical;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
         }
 
         textarea:focus {
             outline: none;
             box-shadow: var(--shadow-focus);
+        }
+
+        textarea.is-invalid {
+            border-color: var(--error-border);
+            background-color: var(--error-background);
+        }
+
+        .action-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .format-button {
+            padding: 0.8rem 1.2rem;
+            border-radius: 5px;
+            background: var(--button-background);
+            color: var(--on-surface);
+            font-weight: 700;
+            transition: background-color 0.2s ease, transform 0.15s ease;
+        }
+
+        .format-button:hover {
+            background: var(--button-hover);
+        }
+
+        .format-button:active {
+            transform: scale(0.98);
+        }
+
+        .validation-message {
+            min-height: 1.5rem;
+            color: var(--error);
+            font-weight: 700;
+        }
+
+        .validation-detail {
+            min-height: 1.25rem;
+            margin-top: 0.25rem;
+            color: var(--on-surface-variant);
+            font-size: 0.875rem;
         }
 
         @media (max-width: 767px) {
@@ -164,12 +211,18 @@
             .topbar {
                 padding: 0 1rem;
             }
+
+            .action-row {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
         }
     </style>
 </head>
 <body>
     <header class="topbar">
-        <h1 class="site-title">Auto Base64 Encode/Decode</h1>
+        <h1 class="site-title">JSON Formatter</h1>
         <div class="topbar-actions">
             <button aria-label="Switch to light theme" class="icon-button" id="theme-toggle" type="button">
                 <span aria-hidden="true" class="icon-glyph" id="theme-toggle-icon">◐</span>
@@ -179,14 +232,15 @@
 
     <main class="page">
         <div class="content">
-            <div class="input-group">
-                <label for="decodedInput">Decoded Text</label>
-                <textarea id="decodedInput" placeholder="Type here to encode..."></textarea>
-            </div>
+            <label for="jsonInput">Paste JSON</label>
+            <textarea id="jsonInput" placeholder='Paste your JSON here...'></textarea>
 
-            <div class="input-group">
-                <label for="encodedInput">Encoded Text</label>
-                <textarea id="encodedInput" placeholder="Type here to decode..."></textarea>
+            <div class="action-row">
+                <button class="format-button" id="formatButton" type="button">Format</button>
+                <div>
+                    <div aria-live="polite" class="validation-message" id="validationMessage"></div>
+                    <div aria-live="polite" class="validation-detail" id="validationDetail"></div>
+                </div>
             </div>
         </div>
     </main>
@@ -195,10 +249,10 @@
         const themeToggleButton = document.getElementById('theme-toggle');
         const themeToggleIcon = document.getElementById('theme-toggle-icon');
         const themeStorageKey = 'dev-tools-theme';
-        const decodedInput = document.getElementById('decodedInput');
-        const encodedInput = document.getElementById('encodedInput');
-
-        let lastChanged = null;
+        const jsonInput = document.getElementById('jsonInput');
+        const formatButton = document.getElementById('formatButton');
+        const validationMessage = document.getElementById('validationMessage');
+        const validationDetail = document.getElementById('validationDetail');
 
         function applyTheme(theme) {
             const nextTheme = theme === 'light' ? 'light' : 'dark';
@@ -217,49 +271,28 @@
             window.localStorage.setItem(themeStorageKey, nextTheme);
         }
 
-        function autoResize(el) {
-            el.style.height = 'auto';
-            el.style.width = '100%';
-            el.style.height = el.scrollHeight + 'px';
-
-            const contentLength = el.value.length;
-            const baseWidth = window.innerWidth > 600 ? 500 : 300;
-            const newWidth = Math.min(baseWidth + contentLength * 0.5, window.innerWidth - 40);
-            el.style.width = newWidth + 'px';
+        function clearValidationState() {
+            jsonInput.classList.remove('is-invalid');
+            validationMessage.textContent = '';
+            validationDetail.textContent = '';
         }
 
-        function handleDecodedInput() {
-            if (lastChanged === 'encoded') return;
-            lastChanged = 'decoded';
+        function formatJson() {
             try {
-                encodedInput.value = btoa(decodedInput.value);
-            } catch {
-                encodedInput.value = 'Encoding error';
+                const parsedJson = JSON.parse(jsonInput.value);
+                jsonInput.value = JSON.stringify(parsedJson, null, 2);
+                clearValidationState();
+            } catch (error) {
+                jsonInput.classList.add('is-invalid');
+                validationMessage.textContent = 'JSON is not valid';
+                validationDetail.textContent = error && error.message ? error.message : '';
             }
-            autoResize(decodedInput);
-            autoResize(encodedInput);
-            lastChanged = null;
-        }
-
-        function handleEncodedInput() {
-            if (lastChanged === 'decoded') return;
-            lastChanged = 'encoded';
-            try {
-                decodedInput.value = atob(encodedInput.value);
-            } catch {
-                decodedInput.value = 'Invalid encoded string';
-            }
-            autoResize(encodedInput);
-            autoResize(decodedInput);
-            lastChanged = null;
         }
 
         applyTheme(window.localStorage.getItem(themeStorageKey) || 'dark');
         themeToggleButton.addEventListener('click', toggleTheme);
-        decodedInput.addEventListener('input', handleDecodedInput);
-        encodedInput.addEventListener('input', handleEncodedInput);
-        autoResize(decodedInput);
-        autoResize(encodedInput);
+        formatButton.addEventListener('click', formatJson);
+        jsonInput.addEventListener('input', clearValidationState);
     </script>
 </body>
 </html>

@@ -2,36 +2,145 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JWT Decoder</title>
     <style>
-        body {
-            background-color: #1e1e1e;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            padding: 2rem;
+        :root {
+            --background: #1e1e1e;
+            --surface-container: #252526;
+            --primary: #f1f1f1;
+            --outline: #9a9a9a;
+            --on-surface: #ffffff;
+            --on-surface-variant: #c8c8c8;
+            --shadow-focus: 0 0 0 2px rgba(255, 255, 255, 0.16);
+            --background-dot: rgba(255, 255, 255, 0.028);
+            --input-background: #2e2e2e;
+            --input-border: #444444;
+            --headline-font: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+            --body-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            --icon-button-hover: #ffffff;
         }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 1.5rem;
+        body[data-theme="light"] {
+            --background: #f3efe8;
+            --surface-container: #ede6dc;
+            --primary: #2d2924;
+            --outline: #7a7269;
+            --on-surface: #2a2621;
+            --on-surface-variant: #6a6259;
+            --shadow-focus: 0 0 0 2px rgba(45, 41, 36, 0.12);
+            --background-dot: rgba(122, 114, 105, 0.07);
+            --input-background: #f7f1e8;
+            --input-border: #c8bcae;
+            --icon-button-hover: #2a2621;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: var(--body-font);
+            color: var(--on-surface);
+            background-color: var(--background);
+            background-image: radial-gradient(circle at 2px 2px, var(--background-dot) 1px, transparent 0);
+            background-size: 24px 24px;
+            transition: background-color 0.25s ease, color 0.25s ease, background-image 0.25s ease;
+        }
+
+        button,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .icon-glyph {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 4rem;
+            padding: 0 1.5rem;
+            background: var(--surface-container);
+        }
+
+        .site-title {
+            margin: 0;
+            font-family: var(--headline-font);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .icon-button {
+            color: var(--on-surface-variant);
+            transition: color 0.2s ease, transform 0.15s ease;
+        }
+
+        .icon-button:hover {
+            color: var(--icon-button-hover);
+        }
+
+        .icon-button:active {
+            transform: scale(0.9);
+        }
+
+        .page {
+            padding: 6rem 2.5rem 5rem;
+        }
+
+        .content {
+            max-width: 64rem;
         }
 
         label {
             display: block;
             margin-bottom: 0.5rem;
-            font-weight: bold;
+            font-weight: 700;
         }
 
-        textarea, pre {
+        textarea,
+        pre {
             width: 100%;
             box-sizing: border-box;
             padding: 1rem;
-            background-color: #2e2e2e;
-            color: #ffffff;
-            border: 1px solid #444;
+            background-color: var(--input-background);
+            color: var(--on-surface);
+            border: 1px solid var(--input-border);
             border-radius: 5px;
-            font-family: monospace;
+            font-family: var(--mono-font);
         }
 
         textarea {
@@ -40,63 +149,109 @@
             margin-bottom: 1rem;
         }
 
+        textarea:focus {
+            outline: none;
+            box-shadow: var(--shadow-focus);
+        }
+
         pre {
             min-height: 150px;
             white-space: pre-wrap;
             word-wrap: break-word;
         }
+
+        @media (max-width: 767px) {
+            .page {
+                padding: 5.5rem 1.25rem 5rem;
+            }
+
+            .topbar {
+                padding: 0 1rem;
+            }
+        }
     </style>
 </head>
 <body>
+    <header class="topbar">
+        <h1 class="site-title">JWT Decoder</h1>
+        <div class="topbar-actions">
+            <button aria-label="Switch to light theme" class="icon-button" id="theme-toggle" type="button">
+                <span aria-hidden="true" class="icon-glyph" id="theme-toggle-icon">◐</span>
+            </button>
+        </div>
+    </header>
 
-<h1>JWT Decoder</h1>
+    <main class="page">
+        <div class="content">
+            <label for="jwtInput">Enter JWT Token:</label>
+            <textarea id="jwtInput" placeholder="Paste your JWT here..."></textarea>
 
-<label for="jwtInput">Enter JWT Token:</label>
-<textarea id="jwtInput" placeholder="Paste your JWT here..."></textarea>
+            <label for="jwtHeader">Header:</label>
+            <pre id="jwtHeader">{ }</pre>
 
-<label for="jwtHeader">Header: </label>
-<pre id="jwtHeader">{ }</pre>
+            <label for="jwtPayload">Payload:</label>
+            <pre id="jwtPayload">{ }</pre>
+        </div>
+    </main>
 
-<label for="jwtPayload">Payload:</label>
-<pre id="jwtPayload">{ }</pre>
+    <script>
+        const themeToggleButton = document.getElementById('theme-toggle');
+        const themeToggleIcon = document.getElementById('theme-toggle-icon');
+        const themeStorageKey = 'dev-tools-theme';
+        const jwtInput = document.getElementById('jwtInput');
+        const jwtPayload = document.getElementById('jwtPayload');
+        const jwtHeader = document.getElementById('jwtHeader');
 
+        function applyTheme(theme) {
+            const nextTheme = theme === 'light' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', nextTheme);
 
-<script>
-    const jwtInput = document.getElementById('jwtInput');
-    const jwtPayload = document.getElementById('jwtPayload');
-    const jwtHeader = document.getElementById('jwtHeader');
-
-    function decodeJWT(token) {
-        try {
-            const payload = decode(token.split('.')[1]);
-            const header = decode(token.split('.')[0]);
-            return {
-                payload,
-                header,
-            };
-        } catch (e) {
-            return 'Invalid JWT or malformed payload.';
+            const isLight = nextTheme === 'light';
+            themeToggleButton.setAttribute('aria-label', isLight ? 'Switch to dark theme' : 'Switch to light theme');
+            themeToggleButton.setAttribute('title', isLight ? 'Switch to dark theme' : 'Switch to light theme');
+            themeToggleIcon.textContent = isLight ? '◑' : '◐';
         }
-    }
 
-    function decode(piece) {
-        const data = atob(piece.replace(/-/g, '+').replace(/_/g, '/'));
-        const json = JSON.parse(data);
-        return JSON.stringify(json, null, 2);
-    }
-
-    jwtInput.addEventListener('input', () => {
-        const token = jwtInput.value.trim();
-        if (token.split('.').length === 3) {
-            const { payload, header } = decodeJWT(token);
-            jwtHeader.textContent = header;
-            jwtPayload.textContent = payload;
-        } else {
-            jwtHeader.textContent = '{ }';
-            jwtPayload.textContent = '{ }';
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(nextTheme);
+            window.localStorage.setItem(themeStorageKey, nextTheme);
         }
-    });
-</script>
 
+        function decodeJWT(token) {
+            try {
+                const payload = decode(token.split('.')[1]);
+                const header = decode(token.split('.')[0]);
+                return {
+                    payload,
+                    header,
+                };
+            } catch (e) {
+                return 'Invalid JWT or malformed payload.';
+            }
+        }
+
+        function decode(piece) {
+            const data = atob(piece.replace(/-/g, '+').replace(/_/g, '/'));
+            const json = JSON.parse(data);
+            return JSON.stringify(json, null, 2);
+        }
+
+        applyTheme(window.localStorage.getItem(themeStorageKey) || 'dark');
+        themeToggleButton.addEventListener('click', toggleTheme);
+
+        jwtInput.addEventListener('input', () => {
+            const token = jwtInput.value.trim();
+            if (token.split('.').length === 3) {
+                const { payload, header } = decodeJWT(token);
+                jwtHeader.textContent = header;
+                jwtPayload.textContent = payload;
+            } else {
+                jwtHeader.textContent = '{ }';
+                jwtPayload.textContent = '{ }';
+            }
+        });
+    </script>
 </body>
 </html>
